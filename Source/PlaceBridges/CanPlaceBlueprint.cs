@@ -152,18 +152,24 @@ namespace Replace_Stuff.PlaceBridges
 	}
 
 
-	[HarmonyPatch(typeof(GenSpawn), "SpawningWipes")]
+	[HarmonyPatch(typeof(GenSpawn), nameof(GenSpawn.SpawningWipes))]
 	public static class DontWipeBridgeBlueprints
 	{
 		//public static bool SpawningWipes(BuildableDef newEntDef, BuildableDef oldEntDef)
-		public static bool Prefix(BuildableDef oldEntDef, bool __result)
+		public static void Postfix(BuildableDef oldEntDef, ref bool __result)
 		{
+			// This method only exists so we can skip wiping bridge blueprints when placing a building that
+			// requires a bridge, so if we already are not wiping, we can just return.
+			if (__result == false)
+			{
+				return;
+			}
+
 			if (oldEntDef is ThingDef tdef && (GenConstruct.BuiltDefOf(tdef) ?? oldEntDef).IsBridgelike())
 			{
 				__result = false;
-				return false;
+				return;
 			}
-			return true;
 		}
 	}
 }
